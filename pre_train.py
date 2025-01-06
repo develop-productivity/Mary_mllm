@@ -154,39 +154,39 @@ if __name__ == '__main__':
         data_args,
         training_args,
     ) = parser.parse_args_into_dataclasses()
-    # config = VLMConfig()
-    # model = VLM(config)
-    # # model = get_model(model_args, training_args)
-    # if training_args.freeze_vision_model:
-    #     for param in model.vision_model.parameters():
-    #         param.requires_grad = False
-    # if training_args.freeze_llm_model:
-    #     for param in model.llm_model.parameters():
-    #         param.requires_grad = False
+    config = VLMConfig()
+    model = VLM(config)
+    # model = get_model(model_args, training_args)
+    if training_args.freeze_vision_model:
+        for param in model.vision_model.parameters():
+            param.requires_grad = False
+    if training_args.freeze_llm_model:
+        for param in model.llm_model.parameters():
+            param.requires_grad = False
 
-    # rank0_print(model)
-    # tunable_param, total_param = count_parameters(model)
-    # rank0_print(f"\tNum of parameters: tunable: {tunable_param:,}, total: {total_param:,}")
-    # images_path = 'datasets/chinese_llava/pretrain/pretrain_images'
-    # data_path = 'datasets/chinese_llava/pretrain/chat-translated.json'
+    rank0_print(model)
+    tunable_param, total_param = count_parameters(model)
+    rank0_print(f"\tNum of parameters: tunable: {tunable_param:,}, total: {total_param:,}")
+    images_path = 'datasets/chinese_llava/pretrain/pretrain_images'
+    data_path = 'datasets/chinese_llava/pretrain/chat-translated.json'
     tokenizer = AutoTokenizer.from_pretrained(model_args.llm_model_path)
     processor = AutoProcessor.from_pretrained(model_args.vision_model_path)
     datasets = MyDataset(data_args, tokenizer, processor)
-    test_datasets(datasets)
-    # trainer = Trainer(
-    #     model=model,
-    #     args=training_args,
-    #     train_dataset=MyDataset(data_args, tokenizer, processor),
-    #     data_collator=MyDataCollator(tokenizer)  
-    # )
+    # test_datasets(datasets)
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=MyDataset(data_args, tokenizer, processor),
+        data_collator=MyDataCollator(tokenizer)  
+    )
     
-    # trainer.train(resume_from_checkpoint=False)
-    # # trainer.save_model(training_args.output_dir)
-    # trainer.save_state()
-    # safe_save_model_for_hf_trainer(
-    #     trainer=trainer,
-    #     output_dir=training_args.output_dir,
-    # )
+    trainer.train(resume_from_checkpoint=False)
+    # trainer.save_model(training_args.output_dir)
+    trainer.save_state()
+    safe_save_model_for_hf_trainer(
+        trainer=trainer,
+        output_dir=training_args.output_dir,
+    )
     
     
 
