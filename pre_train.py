@@ -13,6 +13,7 @@ from torch.utils.data import Dataset
 from transformers import Trainer, TrainingArguments
 from typing import List, Dict, Any
 from dataclasses import dataclass, field
+from model import VLM, VLMConfig
 
 from utils import rank0_print, count_parameters, safe_save_model_for_hf_trainer, get_model
 os.environ["WANDB_MODE"] = "offline"
@@ -30,8 +31,8 @@ class ModelArguments:
 
 @dataclass
 class DataArguments:
-    images_path: Optional[str] = field(default="datasets/chinese_llava/pretrain/pretrain_images")
-    data_path: Optional[str] = field(default="/data/sydong/code/mllms/naive_mllms_train/datasets/llava/pretrain/chat.json")
+    images_path: Optional[str] = field(default="datasets/mllm/chinese_llava/pretrain/pretrain_images")
+    data_path: Optional[str] = field(default="/data/sydong/code/mllms/naive_mllms_train/datasets/mllm/llava/pretrain/chat.json")
     image_pad_num: Optional[int] = field(default=169)
 
 @dataclass
@@ -141,7 +142,10 @@ class MyDataCollator:
             
         
 
-        
+    
+def test_datasets(datasets):
+    for i in range(10):
+        print(datasets[i])
 
 if __name__ == '__main__':
     parser = transformers.HfArgumentParser((ModelArguments, DataArguments, TrainingArguments))
@@ -150,37 +154,39 @@ if __name__ == '__main__':
         data_args,
         training_args,
     ) = parser.parse_args_into_dataclasses()
-    model = get_model(model_args, training_args)
-    if training_args.freeze_vision_model:
-        for param in model.vision_model.parameters():
-            param.requires_grad = False
-    if training_args.freeze_llm_model:
-        for param in model.llm_model.parameters():
-            param.requires_grad = False
-    # config = VLMConfig(llm_model_path="checkpoints/Qwen2.5-0.5B", vision_model_path='checkpoints/siglip-so400m-patch14-384', freeze_vision_model=True, freeze_llm=True, image_pad_num=169)
+    # config = VLMConfig()
     # model = VLM(config)
+    # # model = get_model(model_args, training_args)
+    # if training_args.freeze_vision_model:
+    #     for param in model.vision_model.parameters():
+    #         param.requires_grad = False
+    # if training_args.freeze_llm_model:
+    #     for param in model.llm_model.parameters():
+    #         param.requires_grad = False
 
-    rank0_print(model)
-    tunable_param, total_param = count_parameters(model)
-    rank0_print(f"\tNum of parameters: tunable: {tunable_param:,}, total: {total_param:,}")
+    # rank0_print(model)
+    # tunable_param, total_param = count_parameters(model)
+    # rank0_print(f"\tNum of parameters: tunable: {tunable_param:,}, total: {total_param:,}")
     # images_path = 'datasets/chinese_llava/pretrain/pretrain_images'
     # data_path = 'datasets/chinese_llava/pretrain/chat-translated.json'
     tokenizer = AutoTokenizer.from_pretrained(model_args.llm_model_path)
     processor = AutoProcessor.from_pretrained(model_args.vision_model_path)
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=MyDataset(data_args, tokenizer, processor),
-        data_collator=MyDataCollator(tokenizer)  
-    )
+    datasets = MyDataset(data_args, tokenizer, processor)
+    test_datasets(datasets)
+    # trainer = Trainer(
+    #     model=model,
+    #     args=training_args,
+    #     train_dataset=MyDataset(data_args, tokenizer, processor),
+    #     data_collator=MyDataCollator(tokenizer)  
+    # )
     
-    trainer.train(resume_from_checkpoint=False)
-    # trainer.save_model(training_args.output_dir)
-    trainer.save_state()
-    safe_save_model_for_hf_trainer(
-        trainer=trainer,
-        output_dir=training_args.output_dir,
-    )
+    # trainer.train(resume_from_checkpoint=False)
+    # # trainer.save_model(training_args.output_dir)
+    # trainer.save_state()
+    # safe_save_model_for_hf_trainer(
+    #     trainer=trainer,
+    #     output_dir=training_args.output_dir,
+    # )
     
     
 
