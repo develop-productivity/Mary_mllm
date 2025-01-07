@@ -30,7 +30,7 @@ CUDA == 12.2
 
 
 ## 模型效果
-* pre_model
+* pretrain_model
 
 <img src="asserts/pre_train_result_man_walking.png" width="80%">
 <img src="asserts/pre_train_result_city_street.png" width="80%">
@@ -55,8 +55,8 @@ CUDA == 12.2
 
 You should clone this project and create a python env.
 ```
-git clone https://github.com/develop-productivity/Marry_mllm.git
-cd Marry_mllm
+git clone https://github.com/develop-productivity/Mary_mllm.git
+cd Mary_mllm
 conda create -n env_name python=3.10
 pip install -r requirments.txt
 
